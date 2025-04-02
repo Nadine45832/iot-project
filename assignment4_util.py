@@ -3,28 +3,63 @@ import time
 import random
 from dataclasses import dataclass, asdict, field
 
+from group_2_data_generator import DataGenerator
 
-# Utility module
+
 @dataclass
 class HealthData:
     id: int = field(default_factory=lambda: Assignment4Util.get_next_id())
-    patient: str = field(default_factory=lambda: f"Patient_{random.randint(1, 100)}")
+    user: str = field(default_factory=lambda: f"User_{random.randint(1, 100)}")
     time: str = field(default_factory=lambda: time.asctime())
-    heart_rate: int = field(default_factory=lambda: int(random.gauss(80, 1)))
-    respiratory_rate: int = field(default_factory=lambda: int(random.gauss(12, 2)))
-    heart_rate_variability: int = field(default_factory=lambda: random.randint(50, 80))
-    body_temperature: float = field(
-        default_factory=lambda: round(random.gauss(99, 0.5), 2)
+    temperature: int = field(
+        default_factory=lambda: int(
+            DataGenerator(
+                data_range=(-10, 40), pattern="sine", mean=15, std_dev=5
+            ).value
+        )
     )
-    blood_pressure: dict = field(
+    humidity: int = field(
+        default_factory=lambda: int(
+            DataGenerator(
+                data_range=(20, 100), pattern="random", mean=60, std_dev=10
+            ).value
+        )
+    )
+    pressure: int = field(
+        default_factory=lambda: int(
+            DataGenerator(
+                data_range=(980, 1050), pattern="gaussian", mean=1015, std_dev=5
+            ).value
+        )
+    )
+    air_quality_index: float = field(
+        default_factory=lambda: round(
+            DataGenerator(
+                data_range=(0, 200), pattern="random", mean=50, std_dev=20
+            ).value,
+            2,
+        )
+    )
+    condition: str = field(
+        default_factory=lambda: random.choice(
+            ["Sunny", "Cloudy", "Rainy", "Partly Cloudy", "Thunderstorm", "Snowy"]
+        )
+    )
+    wind: dict = field(
         default_factory=lambda: {
-            "systolic": int(random.gauss(105, 2)),
-            "diastolic": int(random.gauss(70, 1)),
+            "speed": int(
+                DataGenerator(
+                    data_range=(0, 50), pattern="random", mean=20, std_dev=10
+                ).value
+            ),
+            "direction": str(
+                random.choice(["N", "NE", "E", "SE", "S", "SW", "W", "NW"])
+            ),
         }
     )
-    activity: str = field(
+    location: str = field(
         default_factory=lambda: random.choice(
-            ["Walking", "Running", "Sleeping", "Sitting"]
+            ["Toronto", "Vancouver", "Ottawa", "Calgary"]
         )
     )
 
