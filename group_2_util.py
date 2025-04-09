@@ -1,53 +1,131 @@
-# group_2_util.py
+import json
 import time
 import random
+from dataclasses import dataclass, asdict, field
+
 from group_2_data_generator import DataGenerator
 
-start_id = 111
 
-#generator for each sensor
-generator_temp = DataGenerator(data_range=(-10, 40), pattern="sine", mean=15, std_dev=5)
-generator_humidity = DataGenerator(data_range=(20, 100), pattern="random", mean=60, std_dev=10)
-generator_wind = DataGenerator(data_range=(0, 50), pattern="random", mean=20, std_dev=10)
-generator_pressure = DataGenerator(data_range=(980, 1050), pattern="gaussian", mean=1015, std_dev=5)
-generator_aqi = DataGenerator(data_range=(0, 200), pattern="random", mean=50, std_dev=20)
+@dataclass
+class HealthData:
+    id: int = field(default_factory=lambda: Assignment4Util.get_next_id())
+    user: str = field(default_factory=lambda: f"User_{random.randint(1, 100)}")
+    time: str = field(default_factory=lambda: time.asctime())
+    temperature: int = field(
+        default_factory=lambda: int(
+            DataGenerator(
+                data_range=(-10, 40), pattern="sine", mean=15, std_dev=5
+            ).value
+        )
+    )
+    humidity: int = field(
+        default_factory=lambda: int(
+            DataGenerator(
+                data_range=(20, 100), pattern="random", mean=60, std_dev=10
+            ).value
+        )
+    )
+    pressure: int = field(
+        default_factory=lambda: int(
+            DataGenerator(
+                data_range=(980, 1050),
+                pattern="gaussian",
+                mean=1015,
+                std_dev=5,
+            ).value
+        )
+    )
+    air_quality_index: float = field(
+        default_factory=lambda: round(
+            DataGenerator(
+                data_range=(0, 200), pattern="random", mean=50, std_dev=20
+            ).value,
+            2,
+        )
+    )
+    condition: str = field(
+        default_factory=lambda: random.choice(
+            [
+                "Sunny",
+                "Cloudy",
+                "Rainy",
+                "Partly Cloudy",
+                "Thunderstorm",
+                "Snowy",
+            ]
+        )
+    )
+    wind: dict = field(
+        default_factory=lambda: {
+            "speed": int(
+                DataGenerator(
+                    data_range=(0, 50), pattern="random", mean=20, std_dev=10
+                ).value
+            ),
+            "direction": str(
+                random.choice(["N", "NE", "E", "SE", "S", "SW", "W", "NW"])
+            ),
+        }
+    )
+    location: str = field(
+        default_factory=lambda: random.choice(
+            ["Toronto", "Vancouver", "Ottawa", "Calgary"]
+        )
+    )
 
-locations = ['Toronto', 'Vancouver', 'Ottawa', 'Calgary']
-conditions = ['Sunny', 'Cloudy', 'Rainy', 'Partly Cloudy', 'Thunderstorm', 'Snowy']
-wind_directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
 
-#Create data
-def create_data():
-    global start_id
-    data = {
-        'id': start_id,
-        'location': random.choice(locations),
-        'time': time.asctime(),
-        'temperature': round(generator_temp.value, 1),
-        'humidity': round(generator_humidity.value, 1),
-        'wind': {
-            'speed': round(generator_wind.value, 1),
-            'direction': random.choice(wind_directions)
-        },
-        'pressure': round(generator_pressure.value, 1),
-        'air_quality_index': int(generator_aqi.value),
-        'condition': random.choice(conditions)
-    }
-    start_id += 1
-    return data
+# Utility module
+class Assignment4Util:
+    def __init__(self):
+        pass
 
-def print_data(data):
-    print("\n Weather Data Received:")
-    print(f" Location: {data['location']} (ID: {data['id']})")
-    print(f" Time: {data['time']}")
-    print(f"️ Temperature: {data['temperature']} °C")
-    print(f" Humidity: {data['humidity']} %")
-    print(f"️ Wind: {data['wind']['speed']} km/h {data['wind']['direction']}")
-    print(f" Pressure: {data['pressure']} hPa")
-    print(f" Air Quality Index: {data['air_quality_index']}")
-    print(f"️ Condition: {data['condition']}")
+    start_id = 111
+
+    @staticmethod
+    def get_next_id() -> int:
+        Assignment4Util.start_id += 1
+        return Assignment4Util.start_id
+
+    @staticmethod
+    def create_data() -> dict:
+        """Generates structured health data."""
+        return asdict(HealthData())
+
+    @staticmethod
+    def print_data(data: dict) -> None:
+        """Prints structured data in a readable format."""
+        print(json.dumps(data, indent=4))
+
+
+class DataSources:
+    def __init__(self):
+        self.sources = []
+        self.data_generators = {}
+
+    def load(self, config_file="sources.json"):
+        with open(config_file, "r") as f:
+            self.sources = json.load(f)
+            for source in self.sources:
+                dg = DataGenerator(
+                    (source["min"], source["max"]),
+                    source["pattern"],
+                    1,
+                    source["mean"],
+                    source["std"],
+                )
+                self.data_generators[source["name"]] = dg
+
+            return self.data_generators
 
 
 if __name__ == "__main__":
-    data = create_data()
-    print_data(data)
+    _data = Assignment4Util.create_data()
+    Assignment4Util.print_data(_data)
+
+    ds = DataSources()
+    sources = ds.load()
+
+    for name, generator in sources.items():
+        print(f"Values for {name}: ")
+        for _ in range(0, 10):
+            print(generator.value)

@@ -4,8 +4,8 @@ import time
 from typing import Any
 import paho.mqtt.client as mqtt
 
-from assignment4_publisher import Assignment4Publisher
-from assignment4_util import Assignment4Util
+from group_2_publisher import Assignment4Publisher
+from group_2_util import Assignment4Util
 
 
 class Assignment4Subscriber:
@@ -27,7 +27,7 @@ class Assignment4Subscriber:
 
     def subscribe(self) -> None:
         try:
-            self.client.connect("localhost", 1883, 60)
+            self.client.connect("broker.hivemq.com", 1883, 60)
             self.client.subscribe("comp216_assignment4")
             print("Subscribed to topic: comp216_assignment4")
             self.client.loop_forever()
@@ -37,7 +37,10 @@ class Assignment4Subscriber:
 
 if __name__ == "__main__":
     subscriber = Assignment4Subscriber()
-    subscriber_thread = threading.Thread(target=subscriber.subscribe, daemon=True)
+    subscriber_thread = threading.Thread(
+        target=subscriber.subscribe,
+        daemon=True,
+    )
     subscriber_thread.start()
     publisher = Assignment4Publisher()
     for _ in range(10):
