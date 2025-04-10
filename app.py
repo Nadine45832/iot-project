@@ -1,6 +1,6 @@
 import json
 from typing import Any
-from flask import Flask, jsonify
+from flask import Flask, Response, jsonify, stream_with_context
 import paho.mqtt.client as mqtt
 from group_2_util import Assignment4Util
 
@@ -61,6 +61,21 @@ def create_app():
     @app.route("/", methods=["GET"])
     def root():
         return jsonify({"message": "MQTT Flask app is running and subscribed!"})
+
+    @app.route("/sources", methods=["GET"])
+    def get_sources():
+        with open("sources.json", "r") as f:
+            sources = json.load(f) or []
+            return jsonify([{"name": s["name"], "topic": s["topic"]} for s in sources])
+        
+    @app.route("/events/<topic>", methods=["GET"])
+    def get_events():
+        
+        def subscribe():
+            
+        
+        return Response(stream_with_context(subscribe), headers={ "Content-Type": "text/event-stream" })
+        
 
     return app
 
